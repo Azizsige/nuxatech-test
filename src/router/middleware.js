@@ -9,7 +9,7 @@ export function authGuard(to, from, next) {
         } else {
             next();
         }
-    } else if (to.path === '/login' && to.path === '/register' && isAuthenticated) {
+    } else if ((to.path === '/login' || to.path === '/register') && isAuthenticated) {
         next('/dashboard');
     } else {
         next();

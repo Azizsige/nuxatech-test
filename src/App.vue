@@ -1,7 +1,9 @@
 <script setup></script>
 
 <template>
-    <router-view />
+    <Suspense>
+        <router-view />
+    </Suspense>
     <ResponseMessage />
 </template>
 

@@ -16,6 +16,7 @@ watch(
 
         if (val) {
             showSuccess();
+            stateMessage.visible = false;
         }
     }
 );

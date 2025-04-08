@@ -10,23 +10,28 @@ const router = useRouter();
 const register = async () => {
     isLoading.value = true;
     try {
-        const res = await $api('/register', { method: 'POST', body: { email: email.value, password: password.value } });
+        // Base URL bisa disesuaikan di sini, jika perlu
+        const api = createApiInstance(import.meta.env.VITE_API_BASE_URL || '/api'); // Atau gunakan base URL default
+
+        // Melakukan request dengan POST untuk register
+        const res = await api('/register', {
+            method: 'POST',
+            body: { email: email.value, password: password.value }
+        });
 
         console.log('res :', res);
 
-        if (res) {
+        // Menyimpan token di cookie dan redirect ke dashboard
+        if (res && res.token) {
             useCookie('taskNuxa').value = res.token;
             router.push({ name: 'dashboard' });
+        } else {
+            // Menangani kasus error jika token tidak ada
+            errors.value.username = 'Email/Password Salah';
+            errors.value.password = 'Email/Password Salah';
         }
-
-        // if (res.token) {
-
-        // } else {
-        //   errors.value.username = "Email/Password Salah";
-        //   errors.value.password = "Email/Password Salah";
-        // }
     } catch (err) {
-        console.error(err);
+        console.error('Register error:', err);
     } finally {
         isLoading.value = false;
     }

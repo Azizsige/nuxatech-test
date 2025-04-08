@@ -62,7 +62,7 @@ const model = ref([
             {
                 label: 'Crud',
                 icon: 'pi pi-fw pi-pencil',
-                to: '/pages/crud'
+                to: '/dashboard'
             },
             {
                 label: 'Not Found',

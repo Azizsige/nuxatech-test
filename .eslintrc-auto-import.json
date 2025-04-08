@@ -321,6 +321,9 @@
     "showSessionExp": true,
     "showSopDialog": true,
     "state": true,
-    "stateMessage": true
+    "stateMessage": true,
+    "useApi": true,
+    "createApiInstance": true,
+    "createUseApiInstance": true
   }
 }
