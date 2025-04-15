@@ -7,7 +7,7 @@ const router = createRouter({
     routes: [
         { path: '/', redirect: '/login' }, // ✅ Tambahkan redirect ke login
         { path: '/login', name: 'login', component: () => import('@/views/pages/auth/Login.vue') },
-        { path: '/register', name: 'register', component: () => import('@/views/pages/auth/Signup.vue') },
+        // { path: '/register', name: 'register', component: () => import('@/views/pages/auth/Signup.vue') },
         {
             path: '/dashboard',
             component: AppLayout,
@@ -29,7 +29,8 @@ const router = createRouter({
         { path: '/landing', name: 'landing', component: () => import('@/views/pages/Landing.vue') },
         { path: '/pages/notfound', name: 'notfound', component: () => import('@/views/pages/NotFound.vue') },
         { path: '/auth/access', name: 'accessDenied', component: () => import('@/views/pages/auth/Access.vue') },
-        { path: '/auth/error', name: 'error', component: () => import('@/views/pages/auth/Error.vue') }
+        { path: '/auth/error', name: 'error', component: () => import('@/views/pages/auth/Error.vue') },
+        { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/pages/NotFound.vue') }
     ]
 });
 

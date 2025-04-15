@@ -3,6 +3,19 @@ import { useLayout } from '@/layout/composables/layout';
 import AppConfigurator from './AppConfigurator.vue';
 
 const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout();
+
+const op = ref();
+const router = useRouter();
+
+const toggle = (event) => {
+    op.value.toggle(event);
+};
+
+const logout = () => {
+    useCookie('taskNuxa').value = null;
+
+    router.push({ name: 'login' });
+};
 </script>
 
 <template>
@@ -58,20 +71,16 @@ const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout();
                 <i class="pi pi-ellipsis-v"></i>
             </button>
 
-            <div class="layout-topbar-menu hidden lg:block">
+            <div class="hidden layout-topbar-menu lg:block">
                 <div class="layout-topbar-menu-content">
-                    <button type="button" class="layout-topbar-action">
-                        <i class="pi pi-calendar"></i>
-                        <span>Calendar</span>
-                    </button>
-                    <button type="button" class="layout-topbar-action">
-                        <i class="pi pi-inbox"></i>
-                        <span>Messages</span>
-                    </button>
-                    <button type="button" class="layout-topbar-action">
+                    <button type="button" @click="toggle" class="layout-topbar-action">
                         <i class="pi pi-user"></i>
                         <span>Profile</span>
                     </button>
+
+                    <Popover ref="op">
+                        <Button label="Logout" icon="pi pi-users" @click="logout"></Button>
+                    </Popover>
                 </div>
             </div>
         </div>

@@ -1,9 +1,9 @@
 <script setup>
 import { ProductService } from '@/service/ProductService';
+import { useUserStore } from '@/views/stores/index.store';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
-import { useUserStore } from '@/views/stores/index.store';
 
 onMounted(() => {
     ProductService.getProducts().then((data) => (products.value = data));
@@ -48,70 +48,28 @@ function hideDialog() {
     productDialog.value = false;
     submitted.value = false;
     isEdit.value = false;
+    context.isEdit = false; // Set isEdit to false in the store
 }
 
 const saveProduct = async () => {
     submitted.value = true;
 
-    console.log('isEdit:', isEdit.value);
-
     try {
-        // // Pengecekan jika product.id lebih dari 10, tampilkan alert dan hentikan eksekusi
-        // if (isEdit.value && product.value.id > 10) {
-        //     // showMessage('warn', 'ID lebih dari 10, tidak dapat diedit!');
-        //     showMessage({ message: 'ID lebih dari 10, tidak dapat diedit!', color: 'error' });
-        //     return; // Hentikan eksekusi fungsi jika ID lebih dari 10
-        // }
+        const savedData = await context.saveData(product.value); // ✅ tangkap hasil dari store
 
-        // const url = isEdit.value ? `/users/${product.value.id}` : '/users'; // Tentukan URL berdasarkan apakah kita melakukan edit atau tidak
+        if (savedData) {
+            console.log('Data berhasil disimpan:', savedData);
 
-        // // Kirim POST request untuk menambah produk baru atau PUT request untuk update
-        // const newProductResponse = await api(url, {
-        //     method: isEdit.value ? 'PUT' : 'POST',
-        //     body: {
-        //         ...(isEdit.value && { id: product.value.id }), // Hanya kirimkan ID jika isEdit = true (PUT)
-        //         email: product.value.email,
-        //         username: product.value.username,
-        //         name: product.value.name,
-        //         address: {
-        //             street: product.value.address
-        //         }
-        //     }
-        // });
+            // Misal kamu mau update form lagi, atau push data ke array lain, bebas:
+            // data.value.push(savedData); // atau
+            // product.value = savedData;
 
-        // console.log('Product response:', newProductResponse);
-
-        // // Ambil data yang ada di localStorage, pastikan itu adalah array
-        // const existingData = getStoredData(); // Mengambil data dari localStorage
-        // console.log('existingData:', existingData); // Cek apa yang ada di localStorage
-
-        // // Jika melakukan edit (PUT), cari data yang memiliki id yang sama dan perbarui, jika POST, tambahkan data baru
-        // let updatedData;
-        // if (isEdit.value) {
-        //     // Update data berdasarkan id
-        //     updatedData = existingData.map((item) => (item.id === newProductResponse.id ? newProductResponse : item));
-        // } else {
-        //     // Jika POST, tambahkan data baru
-        //     updatedData = Array.isArray(existingData) ? [...existingData, newProductResponse] : [newProductResponse];
-        // }
-
-        // console.log('updatedData:', updatedData); // Cek data setelah penambahan atau update
-
-        // // Simpan data yang sudah diperbarui ke localStorage
-        // saveToStorage(updatedData);
-
-        // // Verifikasi penyimpanan data ke localStorage
-        // const afterSaveData = getStoredData();
-        // console.log('Data after save:', afterSaveData); // Cek data setelah disimpan
-
-        await context.saveData(product.value); // Simpan data ke store
-
-        productDialog.value = false;
-
-        // Mengupdate data dengan hasil fetch
-        data.value = afterSaveData;
+            productDialog.value = false;
+        } else {
+            console.warn('Data tidak berhasil disimpan atau dibatalkan');
+        }
     } catch (error) {
-        console.error('Error adding/updating product:', error);
+        console.error('Error calling saveData from store:', error);
     }
 };
 
@@ -119,118 +77,34 @@ function editProduct(prod) {
     product.value = { ...prod, address: prod.address.street };
     productDialog.value = true;
     isEdit.value = true;
+    context.isEdit = true; // Set isEdit to true in the store
 }
 
 function confirmDeleteProduct(prod) {
     product.value = prod;
+    console.log('product.value:', prod);
     deleteProductDialog.value = true;
 }
 
 function deleteProduct() {
-    products.value = products.value.filter((val) => val.id !== product.value.id);
+    // products.value = products.value.filter((val) => val.id !== product.value.id);
     try {
-        api(`/users/${product.value.id}`, { method: 'DELETE' });
-        // Menghapus data dari localStorage
-        const existingData = getStoredData(); // Mengambil data dari localStorage
-        const updatedData = existingData.filter((item) => item.id !== product.value.id);
-        saveToStorage(updatedData); // Simpan data yang sudah diperbarui ke localStorage
-        data.value = updatedData; // Mengupdate data dengan hasil fetch
+        context.deleteData(product.value.id); // Panggil fungsi deleteData dari store
     } catch (error) {
         console.error('Error deleting product:', error);
     }
     deleteProductDialog.value = false;
 }
 
-function findIndexById(id) {
-    let index = -1;
-    for (let i = 0; i < products.value.length; i++) {
-        if (products.value[i].id === id) {
-            index = i;
-            break;
-        }
-    }
-
-    return index;
-}
-
-function createId() {
-    let id = '';
-    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (var i = 0; i < 5; i++) {
-        id += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return id;
-}
-
-function exportCSV() {
-    dt.value.exportCSV();
-}
-
 function confirmDeleteSelected() {
     deleteProductsDialog.value = true;
-}
-
-function deleteSelectedProducts() {
-    products.value = products.value.filter((val) => !selectedProducts.value.includes(val));
-    deleteProductsDialog.value = false;
-    selectedProducts.value = null;
-    toast.add({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
-}
-
-function getStatusLabel(status) {
-    switch (status) {
-        case 'INSTOCK':
-            return 'success';
-
-        case 'LOWSTOCK':
-            return 'warn';
-
-        case 'OUTOFSTOCK':
-            return 'danger';
-
-        default:
-            return null;
-    }
 }
 
 // Base URL bisa disesuaikan di sini, jika perlu
 const api = createApiInstance('https://jsonplaceholder.typicode.com'); // Atau gunakan base URL default
 
-// Fungsi untuk mengambil data dari localStorage dan deserialisasi JSON
-const getStoredData = () => {
-    try {
-        const serializedData = localStorage.getItem('listData');
-        return serializedData ? JSON.parse(serializedData) : []; // Pastikan kalau tidak ada data, kembalikan array kosong
-    } catch (error) {
-        console.error('Error getting data from storage:', error);
-        return []; // Kembalikan array kosong jika terjadi error
-    }
-};
-
-const saveToStorage = (data) => {
-    try {
-        // Serialisasi data ke JSON dan simpan ke localStorage
-        const serializedData = JSON.stringify(data);
-        localStorage.setItem('listData', serializedData);
-    } catch (error) {
-        console.error('Error saving data to storage:', error);
-    }
-};
-
-const fetchUsers = async () => {
-    const res = await api('/users', { method: 'GET' });
-    // console.log('res:', res);
-
-    // Menyimpan hasil fetch ke localStorage
-    saveToStorage(res);
-    data.value = res; // Mengupdate data dengan hasil fetch
-};
-
-onMounted(() => {
-    // Memanggil fungsi fetchUsers saat komponen dimuat
-    fetchUsers();
-
-    console.log('Data dari localStorage:', data.value);
+onMounted(async () => {
+    await context.getList();
 });
 </script>
 
@@ -251,7 +125,7 @@ onMounted(() => {
             <DataTable
                 ref="dt"
                 v-model:selection="selectedProducts"
-                :value="data"
+                :value="context.dataTable"
                 dataKey="id"
                 :paginator="true"
                 :rows="10"
@@ -331,7 +205,7 @@ onMounted(() => {
             </div>
             <template #footer>
                 <Button label="No" icon="pi pi-times" text @click="deleteProductDialog = false" />
-                <Button label="Yes" icon="pi pi-check" @click="deleteProduct" />
+                <Button label="Yes" icon="pi pi-check" @click="deleteProduct(product.id)" />
             </template>
         </Dialog>
 

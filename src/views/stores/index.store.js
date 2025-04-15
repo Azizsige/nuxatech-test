@@ -1,64 +1,107 @@
-export const useUserStore = defineStore({
-    id: 'user.store',
+export const useUserStore = defineStore('user', {
     state: () => ({
         isEdit: false,
         dataTable: null
     }),
+
     actions: {
-        async saveData(data) {
+        getStoredData() {
             try {
-                // Pengecekan jika product.id lebih dari 10, tampilkan alert dan hentikan eksekusi
-                if (this.isEdit && data.id > 10) {
-                    // showMessage('warn', 'ID lebih dari 10, tidak dapat diedit!');
-                    showMessage({ message: 'ID lebih dari 10, tidak dapat diedit!', color: 'error' });
-                    return; // Hentikan eksekusi fungsi jika ID lebih dari 10
-                }
-
-                const url = this.isEdit ? `/users/${data.id}` : '/users'; // Tentukan URL berdasarkan apakah kita melakukan edit atau tidak
-
-                // Kirim POST request untuk menambah produk baru atau PUT request untuk update
-                const newProductResponse = await api(url, {
-                    method: this.isEdit ? 'PUT' : 'POST',
-                    body: {
-                        ...(this.isEdit && { id: data.id }), // Hanya kirimkan ID jika isEdit = true (PUT)
-                        email: data.email,
-                        username: data.username,
-                        name: data.name,
-                        address: {
-                            street: data.address
-                        }
-                    }
-                });
-
-                console.log('Product response:', newProductResponse);
-
-                // Ambil data yang ada di localStorage, pastikan itu adalah array
-                const existingData = getStoredData(); // Mengambil data dari localStorage
-                console.log('existingData:', existingData); // Cek apa yang ada di localStorage
-
-                // Jika melakukan edit (PUT), cari data yang memiliki id yang sama dan perbarui, jika POST, tambahkan data baru
-                let updatedData;
-                if (this.isEdit) {
-                    // Update data berdasarkan id
-                    updatedData = existingData.map((item) => (item.id === newProductResponse.id ? newProductResponse : item));
-                } else {
-                    // Jika POST, tambahkan data baru
-                    updatedData = Array.isArray(existingData) ? [...existingData, newProductResponse] : [newProductResponse];
-                }
-
-                console.log('updatedData:', updatedData); // Cek data setelah penambahan atau update
-
-                // Simpan data yang sudah diperbarui ke localStorage
-                saveToStorage(updatedData);
-
-                // Verifikasi penyimpanan data ke localStorage
-                const afterSaveData = getStoredData();
-                console.log('Data after save:', afterSaveData); // Cek data setelah disimpan
-
-                // Mengupdate data dengan hasil fetch
-                // data.value = afterSaveData;
+                const serializedData = localStorage.getItem('listData');
+                return serializedData ? JSON.parse(serializedData) : []; // Pastikan kalau tidak ada data, kembalikan array kosong
             } catch (error) {
-                console.error('Error adding/updating product:', error);
+                console.error('Error getting data from storage:', error);
+                return []; // Kembalikan array kosong jika terjadi error
+            }
+        },
+
+        saveToStorage(data) {
+            try {
+                const serializedData = JSON.stringify(data);
+                localStorage.setItem('listData', serializedData);
+            } catch (error) {
+                console.error('Error saving data to storage:', error);
+            }
+        },
+
+        async saveData(data) {
+            const api = createApiInstance('https://jsonplaceholder.typicode.com');
+            try {
+                if (this.isEdit && data.id > 10) {
+                    showMessage({ message: 'ID lebih dari 10, tidak dapat diedit!', color: 'error' });
+                    return null;
+                }
+
+                const url = this.isEdit ? `/users/${data.id}` : '/users';
+                const method = this.isEdit ? 'PUT' : 'POST';
+
+                const payload = {
+                    email: data.email,
+                    username: data.username,
+                    name: data.name,
+                    address: {
+                        street: data.address
+                    }
+                };
+
+                if (this.isEdit) {
+                    payload.id = data.id;
+                }
+
+                const response = await api(url, { method, body: payload });
+
+                const existingData = this.getStoredData();
+                let updatedData = [];
+
+                if (this.isEdit) {
+                    updatedData = existingData.map((item) => (item.id === response.id ? response : item));
+                } else {
+                    updatedData = Array.isArray(existingData) ? [...existingData, response] : [response];
+                }
+
+                this.saveToStorage(updatedData);
+                this.dataTable = updatedData;
+
+                // showMessage({ message: 'Data berhasil disimpan!', color: 'success' });
+
+                return response; // ✅ lempar hasil response ke pemanggil
+            } catch (error) {
+                console.error('Error saving data:', error);
+                showMessage({ message: 'Terjadi kesalahan saat menyimpan data!', color: 'error' });
+                return null; // return null kalau error
+            }
+        },
+
+        async getList() {
+            const api = createApiInstance('https://jsonplaceholder.typicode.com');
+
+            const res = await api('/users', { method: 'GET' });
+
+            if (res) {
+                this.dataTable = res;
+                this.saveToStorage(res);
+            } else {
+                showMessage({ message: 'Gagal mendapatkan data!', color: 'error' });
+            }
+        },
+
+        async deleteData(id) {
+            const api = createApiInstance('https://jsonplaceholder.typicode.com');
+            try {
+                const response = await api(`/users/${id}`, { method: 'DELETE' });
+
+                if (response) {
+                    const existingData = this.getStoredData();
+                    const updatedData = existingData.filter((item) => item.id !== id);
+                    this.saveToStorage(updatedData);
+                    this.dataTable = updatedData;
+                    // showMessage({ message: 'Data berhasil dihapus!', color: 'success' });
+                } else {
+                    showMessage({ message: 'Gagal menghapus data!', color: 'error' });
+                }
+            } catch (error) {
+                console.error('Error deleting data:', error);
+                showMessage({ message: 'Terjadi kesalahan saat menghapus data!', color: 'error' });
             }
         }
     }

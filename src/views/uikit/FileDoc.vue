@@ -18,15 +18,15 @@ function onUpload() {
     <div class="grid grid-cols-12 gap-8">
         <div class="col-span-full lg:col-span-6">
             <div class="card">
-                <div class="font-semibold text-xl mb-4">Advanced</div>
+                <div class="mb-4 text-xl font-semibold">Advanced</div>
                 <FileUpload name="demo[]" @uploader="onUpload" :multiple="true" accept="image/*" :maxFileSize="1000000" customUpload />
             </div>
         </div>
         <div class="col-span-full lg:col-span-6">
             <div class="card">
-                <div class="font-semibold text-xl mb-4">Basic</div>
-                <div class="card flex flex-col gap-6 items-center justify-center">
-                    <Toast />
+                <div class="mb-4 text-xl font-semibold">Basic</div>
+                <div class="flex flex-col items-center justify-center gap-6 card">
+                    <!-- <Toast /> -->
                     <FileUpload ref="fileupload" mode="basic" name="demo[]" accept="image/*" :maxFileSize="1000000" @uploader="onUpload" customUpload />
                     <Button label="Upload" @click="upload" severity="secondary" />
                 </div>
