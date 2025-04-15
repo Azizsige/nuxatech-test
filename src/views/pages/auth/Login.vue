@@ -6,13 +6,13 @@ const password = ref('pistol');
 const isLoading = ref(false);
 const router = useRouter();
 
-const register = async () => {
+const login = async () => {
     isLoading.value = true;
     try {
         // Base URL bisa disesuaikan di sini, jika perlu
         const api = createApiInstance(import.meta.env.VITE_API_BASE_URL || '/api'); // Atau gunakan base URL default
 
-        // Melakukan request dengan POST untuk register
+        // Melakukan request dengan POST untuk login
         const res = await api('/login', {
             method: 'POST',
             body: { email: email.value, password: password.value }
@@ -23,14 +23,14 @@ const register = async () => {
         // Menyimpan token di cookie dan redirect ke dashboard
         if (res && res.token) {
             useCookie('taskNuxa').value = res.token;
-            router.push({ name: 'dashboard' });
+            router.push({ name: 'homepage' });
         } else {
             // Menangani kasus error jika token tidak ada
             errors.value.username = 'Email/Password Salah';
             errors.value.password = 'Email/Password Salah';
         }
     } catch (err) {
-        console.error('Register error:', err);
+        console.error('login error:', err);
     } finally {
         isLoading.value = false;
     }
@@ -56,7 +56,8 @@ const register = async () => {
 
                         <label for="password1" class="block mb-2 text-xl font-medium text-surface-900 dark:text-surface-0">Password</label>
                         <Password id="password1" v-model="password" placeholder="Password" :toggleMask="true" class="mb-4" fluid :feedback="false"></Password>
-                        <Button label="Register" class="w-full mt-3 bg-white" @click="register"></Button>
+                        <Button label="Login" class="w-full mt-3 bg-white" @click="login"></Button>
+                        <Button label="Register" class="w-full mt-3 bg-white" as="router-link" to="/register"></Button>
                     </div>
                 </div>
             </div>

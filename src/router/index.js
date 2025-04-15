@@ -7,12 +7,13 @@ const router = createRouter({
     routes: [
         { path: '/', redirect: '/login' }, // ✅ Tambahkan redirect ke login
         { path: '/login', name: 'login', component: () => import('@/views/pages/auth/Login.vue') },
-        // { path: '/register', name: 'register', component: () => import('@/views/pages/auth/Signup.vue') },
+        { path: '/register', name: 'register', component: () => import('@/views/pages/auth/Signup.vue') },
         {
             path: '/dashboard',
             component: AppLayout,
             children: [
-                { path: '/dashboard', name: 'dashboard', meta: { requiresAuth: true }, component: () => import('@/views/Dashboard.vue') },
+                { path: '/users', name: 'users', meta: { requiresAuth: true }, component: () => import('@/views/Dashboard.vue') },
+                { path: '/homepage', name: 'homepage', meta: { requiresAuth: true }, component: () => import('@/views/Homepage.vue') },
                 { path: '/uikit/overlay', name: 'overlay', meta: { requiresAuth: true }, component: () => import('@/views/uikit/OverlayDoc.vue') },
                 { path: '/uikit/media', name: 'media', meta: { requiresAuth: true }, component: () => import('@/views/uikit/MediaDoc.vue') },
                 { path: '/uikit/message', name: 'message', meta: { requiresAuth: true }, component: () => import('@/views/uikit/MessagesDoc.vue') },

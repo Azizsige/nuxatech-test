@@ -1,5 +1,4 @@
 <script setup>
-import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
 import { ref } from 'vue';
 
 const email = ref('eve.holt@reqres.in');
@@ -24,7 +23,7 @@ const register = async () => {
         // Menyimpan token di cookie dan redirect ke dashboard
         if (res && res.token) {
             useCookie('taskNuxa').value = res.token;
-            router.push({ name: 'dashboard' });
+            router.push({ name: 'homepage' });
         } else {
             // Menangani kasus error jika token tidak ada
             errors.value.username = 'Email/Password Salah';
